@@ -1,0 +1,9 @@
+# Ignorar carpetas de librerías (en cualquier subcarpeta)
+node_modules/
+
+# Ignorar archivos de variables de entorno (claves secretas)
+.env
+
+# Ignorar archivos del sistema operativo (basura)
+.DS_Store
+Thumbs.db
