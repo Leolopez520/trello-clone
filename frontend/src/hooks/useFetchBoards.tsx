@@ -6,26 +6,27 @@ export const useFetchBoards = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchBoards = async () => {
-      try {
-        const res = await fetch("http://localhost:4000/boards");
+  const fetchBoards = async () => {
+    try {
+      const res = await fetch("http://localhost:4000/boards");
 
-        if (!res.ok) {
-          throw new Error("Error al cargar los datos");
-        }
-        const data = await res.json();
-        console.log("Datos recibidos:", data);
-        setBoards(data);
-      } catch (err) {
-        console.error("Error:", err);
-        setError("Ocurrio un error al cargar los tableros");
-      } finally {
-        setIsLoading(false);
+      if (!res.ok) {
+        throw new Error("Error al cargar los datos");
       }
-    };
+      const data = await res.json();
+      console.log("Datos recibidos:", data);
+      setBoards(data);
+    } catch (err) {
+      console.error("Error:", err);
+      setError("Ocurrio un error al cargar los tableros");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchBoards();
   }, []);
 
-  return { boards, isLoading, error };
+  return { boards, isLoading, error, refreshBoards: fetchBoards };
 };

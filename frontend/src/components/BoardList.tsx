@@ -1,10 +1,10 @@
-import { useFetchBoards } from "../hooks/useFetchBoards";
+import type { Board } from "../interfaces/board";
 
-export const BoardList = () => {
-  const { boards, isLoading, error } = useFetchBoards();
+interface Props {
+  boards: Board[];
+}
 
-  if (isLoading) return <p>Cargando...</p>;
-  if (error) return <p style={{ color: "red" }}>{error}</p>;
+export const BoardList = ({ boards }: Props) => {
   return (
     <div className="board-list">
       <h1>Mis Tableros</h1>
