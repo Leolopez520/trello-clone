@@ -24,9 +24,61 @@ export const useFetchBoards = () => {
     }
   };
 
+  const deleteBoard = async (id: string) => {
+    if (!window.confirm("¿Estas seguro de eliminar este tablero?")) return;
+
+    try {
+      const res = await fetch(`http://localhost:4000/boards/${id}`, {
+        method: "DELETE",
+      });
+
+      if (res.ok) {
+        fetchBoards();
+      } else {
+        setError("No se pudo eliminar el tablero");
+      }
+    } catch (err) {
+      setError("Error de conexión al eliminar");
+    }
+  };
+
+  const onUpdateBoard = async (idToUpdate: string, newTitle: string) => {
+    const updatedList = boards.map((board) => {
+      if (board._id === idToUpdate) {
+        return { ...board, title: newTitle };
+      }
+      return board;
+    });
+    setBoards(updatedList);
+
+    try {
+      const res = await fetch(`http://localhost:4000/boards/${idToUpdate}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ title: newTitle }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Error al actualizar en el servidor");
+      }
+    } catch {
+      console.error(error);
+      setError("No se pudo guardar, recarga la pagina");
+    }
+  };
+
   useEffect(() => {
     fetchBoards();
   }, []);
 
-  return { boards, isLoading, error, refreshBoards: fetchBoards };
+  return {
+    boards,
+    isLoading,
+    error,
+    refreshBoards: fetchBoards,
+    deleteBoard,
+    onUpdateBoard,
+  };
 };

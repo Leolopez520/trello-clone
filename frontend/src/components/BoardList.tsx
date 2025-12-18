@@ -1,10 +1,14 @@
+import { useFetchBoards } from "@/hooks/useFetchBoards";
 import type { Board } from "../interfaces/board";
+import { BoardItem } from "./BoardItem";
 
 interface Props {
   boards: Board[];
+  onDeleteBoard: (id: string) => void;
+  onUpdateBoard: (id: string, newTitle: string) => void;
 }
 
-export const BoardList = ({ boards }: Props) => {
+export const BoardList = ({ boards, onDeleteBoard, onUpdateBoard }: Props) => {
   return (
     <div className="board-list">
       <h1>Mis Tableros</h1>
@@ -13,7 +17,11 @@ export const BoardList = ({ boards }: Props) => {
       <ul>
         {boards.map((board) => (
           <li key={board._id} style={{ color: board.color }}>
-            {board.title}
+            <BoardItem
+              board={board}
+              onDelete={onDeleteBoard}
+              onUpdate={onUpdateBoard}
+            />
           </li>
         ))}
       </ul>
