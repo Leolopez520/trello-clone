@@ -70,3 +70,39 @@ app.get("/boards", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en el puerto ${PORT}`);
 });
+
+app.delete("/boards/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deleteBoard = await Board.findByIdAndDelete(id);
+
+    if (!deleteBoard) {
+      return res.status(404).json({ error: "Tablero no encontrado" });
+    }
+
+    res.json({ message: "Tablero eliminado correctamente" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Error al eliminar el tablero" });
+  }
+});
+
+app.put("/boards/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title } = req.body;
+    const updatedBoard = await Board.findByIdAndUpdate(
+      id,
+      { title },
+      { new: true }
+    );
+
+    if (!updatedBoard) {
+      return res.status(404).json({ error: "Tablero no encontrado" });
+    }
+    res.json(updatedBoard);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Error al actualizar el tablero " });
+  }
+});
