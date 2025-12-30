@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "sonner";
 
 interface Props {
   onBoardCreated: () => void;
@@ -21,10 +22,12 @@ export const CreateBoardForm = ({ onBoardCreated }: Props) => {
 
       if (res.ok) {
         console.log("¡Tablero creado con éxito!");
+        toast.success("Tablero creado con exito");
         setTitle("");
         onBoardCreated();
       } else {
         console.error("Falló la creación");
+        toast.error("Falló la creación");
       }
     } catch (error) {
       console.error("Error de conexión:", error);

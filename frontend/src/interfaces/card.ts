@@ -3,4 +3,6 @@ export interface Card {
   title: string;
   listId: string;
   boardId: string;
+  description?: string;
+  completed: boolean;
 }

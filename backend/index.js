@@ -161,10 +161,10 @@ app.get("/cards/:boardId", async (req, res) => {
 app.put("/cards/:boardId", async (req, res) => {
   try {
     const { boardId } = req.params;
-    const { title } = req.body;
+    const { title, description } = req.body;
     const updatedCard = await Card.findByIdAndUpdate(
       boardId,
-      { title },
+      { title, description },
       { new: true }
     );
 

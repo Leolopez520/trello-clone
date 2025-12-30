@@ -1,4 +1,4 @@
-import { BoardDetail } from "@/pages/BoardDetail";
+import { BoardDetail } from "@/components/BoardDetail";
 import { Home } from "@/pages/Home";
 import { createBrowserRouter, Navigate } from "react-router-dom";
 

@@ -6,6 +6,14 @@ const cardSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
+  description: {
+    type: String,
+    default: "",
+  },
+  completed: {
+    type: Boolean,
+    default: false,
+  },
   listId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Lists",

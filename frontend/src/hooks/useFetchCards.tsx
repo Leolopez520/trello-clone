@@ -19,5 +19,5 @@ export const useFetchCards = (boardId: string | undefined) => {
     if (boardId) refreshCards();
   }, [boardId]);
 
-  return { cards, refreshCards };
+  return { cards, refreshCards, setCards };
 };

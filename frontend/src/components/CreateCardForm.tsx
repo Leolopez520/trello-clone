@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Button } from "./ui/button";
+import { toast } from "sonner";
 
 interface Props {
   listId: string;
@@ -24,11 +25,13 @@ export const CreateCardForm = ({ listId, boardId, onCardCreated }: Props) => {
 
       if (res.ok) {
         setTitle("");
+        toast.success("Tarjeta creada con exito!");
         onCardCreated();
         setIsEditing(false);
       }
     } catch (error) {
       console.error(error);
+      toast.error("Error creando la tarjeta");
     }
   };
 
