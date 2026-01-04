@@ -10,4 +10,11 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  optimizeDeps: {
+    include: [
+      "tslib",
+      "@radix-ui/react-alert-dialog",
+      "@radix-ui/react-dialog",
+    ],
+  },
 });

@@ -1,5 +1,10 @@
 import type { Card } from "@/interfaces/card";
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+  type ChangeEvent,
+  type ReactEventHandler,
+} from "react";
 import { Button } from "./ui/button";
 
 interface Props {
@@ -11,6 +16,19 @@ interface Props {
 export const CardDetailModal = ({ card, onClose, onUpdate }: Props) => {
   const [description, setDescription] = useState(card.description || "");
   const [title, setTitle] = useState(card.title);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [onClose]);
 
   useEffect(() => {
     setDescription(card.description || "");
@@ -54,13 +72,13 @@ export const CardDetailModal = ({ card, onClose, onUpdate }: Props) => {
         <div className="flex justify-end gap-2">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded transition"
+            className="px-4 py-2 text-gray-600 hover:bg-gray-300 rounded transition cursor-pointer"
           >
             Cancelar
           </button>
           <Button
             onClick={handleSave}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
+            className="bg-blue-600 hover:bg-blue-900 text-white cursor-pointer "
           >
             Guardar
           </Button>

@@ -1,6 +1,16 @@
 import type { Card } from "@/interfaces/card";
 import { useState } from "react";
-import { Button } from "./ui/button";
+// Quitamos Button de shadcn para no romper los estilos finos del checkbox
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "./ui/alert-dialog";
 
 interface Props {
   card: Card;
@@ -19,21 +29,21 @@ export const CardItem = ({
 }: Props) => {
   const [isEditing, setIsEditing] = useState(false);
   const [tempTitle, setTempTitle] = useState(card.title);
-  //Edicion rapida
+
   const handleSave = () => {
     if (!tempTitle.trim()) {
+      setTempTitle(card.title); // Revertimos si está vacío
       return setIsEditing(false);
     }
     onUpdate(card._id, tempTitle);
     setIsEditing(false);
   };
-  //Teclas edicion rapida
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSave();
     }
-
     if (e.key === "Escape") {
       setIsEditing(false);
       setTempTitle(card.title);
@@ -42,7 +52,7 @@ export const CardItem = ({
 
   if (isEditing) {
     return (
-      <div className="bg-white p-2 rounded-b-lg shadow-sm mb-2 border border-blue-500">
+      <div className="bg-white p-2 rounded-lg shadow-sm mb-2 border-2 border-blue-500 z-20 relative">
         <textarea
           autoFocus
           className="w-full text-sm outline-none resize-none bg-transparent"
@@ -57,15 +67,21 @@ export const CardItem = ({
   }
 
   return (
-    <div className="group relative bg-white p-2 rounded-lg shadow-sm mb-2 border border-gray-200 hover:border-gray-300 cursor-pointer hover:bg-gray-50 flex items-start gap-2">
-      <Button
+    <div className="group relative bg-white p-2 rounded-lg shadow-sm mb-2 border border-gray-200 hover:border-gray-300 cursor-pointer hover:bg-gray-50 flex items-start">
+      {/* USAMOS <button> (HTML NATIVO) 
+         Para que la animación de width (w-0 a w-5) funcione suave.
+         El Button de Shadcn tiene padding forzado que arruinaría esto.
+      */}
+      <button
         onClick={(e) => {
           e.stopPropagation();
           onToggleCompleted(card._id, card.completed);
         }}
-        className={`shrink-0 mt-0.5 rounded-full hover:bg-gray-200 p-0.5 transition-opacity duration-200 
+        className={`shrink-0 mt-0.5 rounded-full overflow-hidden transition-all duration-300 ease-in-out hover:bg-gray-200 p-0.5
           ${
-            card.completed ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+            card.completed
+              ? "w-5 mr-2 opacity-100"
+              : "w-0 opacity-0 group-hover:w-5 group-hover:mr-2 group-hover:opacity-100"
           }`}
       >
         {card.completed ? (
@@ -93,16 +109,22 @@ export const CardItem = ({
             <circle cx="12" cy="12" r="9" />
           </svg>
         )}
-      </Button>
+      </button>
 
+      {/* TÍTULO */}
       <div
         onClick={onClick}
-        className="text-sm text-gray-800 break-words min-h-[20px]"
+        className={`text-sm text-gray-800 break-words flex-1 leading-6 transition-all duration-300 ${
+          card.completed ? "text-gray-400 line-through" : ""
+        }`}
       >
         {card.title}
       </div>
-      <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 flex gap-1 bg-white/80 rounded px-1 transition-opacity">
-        <Button
+
+      {/* ICONOS DE ACCIÓN RÁPIDA */}
+      <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 flex gap-1 bg-white/90 rounded px-1 transition-opacity z-10">
+        {/* Lápiz: Usamos botón nativo para evitar estilos extraños */}
+        <button
           onClick={(e) => {
             e.stopPropagation();
             setIsEditing(true);
@@ -110,19 +132,39 @@ export const CardItem = ({
           className="p-1 hover:bg-gray-200 rounded text-gray-500 hover:text-blue-600"
         >
           ✏️
-        </Button>
+        </button>
 
-        <Button
-          onClick={(e) => {
-            e.stopPropagation();
-            if (confirm("¿Borrar esta tarjeta?")) {
-              onDelete(card._id);
-            }
-          }}
-          className="p-1 hover:bg-gray-200 rounded text-gray-500 hover:text-red-600"
-        >
-          🗑️
-        </Button>
+        {/* ALERT DIALOG (Basura) */}
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <button
+              className="p-1 hover:bg-gray-200 rounded text-gray-500 hover:text-red-600"
+              onClick={(e) => e.stopPropagation()}
+            >
+              🗑️
+            </button>
+          </AlertDialogTrigger>
+
+          <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+            <AlertDialogTitle>¿Eliminar esta tarea?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+
+            <AlertDialogFooter>
+              <AlertDialogCancel className="border-0 bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900 transition-colors duration-200 cursor-pointer">
+                Cancelar
+              </AlertDialogCancel>
+              {/* Aquí sí usamos la Action de Shadcn porque queremos que resalte en rojo */}
+              <AlertDialogAction
+                onClick={() => onDelete(card._id)}
+                className="bg-red-600 text-white hover:bg-red-900 hover:shadow-md transition-all duration-200 cursor-pointer"
+              >
+                Sí, eliminar
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
