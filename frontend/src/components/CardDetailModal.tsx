@@ -1,10 +1,5 @@
 import type { Card } from "@/interfaces/card";
-import {
-  useEffect,
-  useState,
-  type ChangeEvent,
-  type ReactEventHandler,
-} from "react";
+import { useEffect, useState } from "react";
 import { Button } from "./ui/button";
 
 interface Props {
