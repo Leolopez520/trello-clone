@@ -58,10 +58,6 @@ export const CardItem = ({
 
   return (
     <div className="group relative bg-white p-2 rounded-lg shadow-sm mb-2 border border-gray-200 hover:border-gray-300 cursor-pointer hover:bg-gray-50 flex items-start">
-      {/* USAMOS <button> (HTML NATIVO) 
-         Para que la animación de width (w-0 a w-5) funcione suave.
-         El Button de Shadcn tiene padding forzado que arruinaría esto.
-      */}
       <button
         onClick={(e) => {
           e.stopPropagation();
@@ -104,7 +100,7 @@ export const CardItem = ({
       {/* TÍTULO */}
       <div
         onClick={onClick}
-        className={`text-sm text-gray-800 break-words flex-1 leading-6 transition-all duration-300 ${
+        className={`text-sm text-gray-800 w-full min-w-0 break-words flex-1 leading-6 transition-all duration-300 ${
           card.completed ? "text-gray-400 line-through" : ""
         }`}
       >

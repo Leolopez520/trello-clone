@@ -74,7 +74,11 @@ export const BoardDetail = () => {
       console.log("Respuesta del server:", res.ok);
       if (res.ok) {
         refreshLists();
-        toast.success(newStatus ? "Tarea completada" : "Tarea pendiente");
+        {
+          currentStatus === false
+            ? toast.success("Tarea Completada")
+            : toast.info("Tarea desmarcada");
+        }
       }
     } catch (error) {
       console.error("Error al cambiar estado:", error);
@@ -231,7 +235,7 @@ export const BoardDetail = () => {
           return (
             <div
               key={list._id}
-              className="min-w-68 bg-gray-100 rounded-lg p-2 shadow-md"
+              className="min-w-68 bg-gray-100 rounded-lg p-2 shadow-md max-h-[80vh] w-72 shrink-0 flex flex-col"
             >
               <div className="flex justify-between">
                 <EditableTitle
@@ -239,7 +243,7 @@ export const BoardDetail = () => {
                   onSave={(newTitle) =>
                     handleUpdateListTitle(list._id, newTitle)
                   }
-                  className="font-bold text-gray-700 px-2 mb-2"
+                  className="font-bold text-gray-700 px-2 mb-2 break-words"
                 />
 
                 <DeleteBtn handleDelete={() => handleDeleteList(list._id)} />
@@ -249,7 +253,7 @@ export const BoardDetail = () => {
                 collisionDetection={closestCenter}
                 onDragEnd={handleDragEnd}
               >
-                <div className="flex flex-col gap-2 mt-2">
+                <div className="flex-1 flex-col gap-2 mt-2 overflow-y-auto  min-h-0 px-1 overflow-x-hidden ">
                   <SortableContext
                     items={cardsInThisList.map((card) => card._id)}
                     strategy={verticalListSortingStrategy}
