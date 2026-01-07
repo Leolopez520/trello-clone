@@ -23,12 +23,15 @@ import { useState } from "react";
 import { CardDetailModal } from "@/components/CardDetailModal";
 import type { Card } from "@/interfaces/card";
 import { toast } from "sonner";
+import { Button } from "./ui/button";
+import { DeleteBtn } from "./DeleteBtn";
+import { EditableTitle } from "./EditableTitle";
 
 export const BoardDetail = () => {
   const [activeCard, setActiveCard] = useState<Card | null>(null);
   const { boardId } = useParams();
 
-  const { board } = useFetchBoard(boardId);
+  const { board, setBoard, error, isLoading } = useFetchBoard(boardId);
   const { lists, refreshLists } = useFetchLists(boardId);
   const { cards, refreshCards, setCards } = useFetchCards(boardId);
 
@@ -68,12 +71,15 @@ export const BoardDetail = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ completed: newStatus }),
       });
-      if (res.ok && currentStatus === false) {
-        toast.success("Tarea completada");
+      console.log("Respuesta del server:", res.ok);
+      if (res.ok) {
+        refreshLists();
+        toast.success(newStatus ? "Tarea completada" : "Tarea pendiente");
       }
     } catch (error) {
       console.error("Error al cambiar estado:", error);
       toast.error("Error al conectar con el servidor");
+      refreshLists();
     }
   };
 
@@ -116,6 +122,53 @@ export const BoardDetail = () => {
     }
   };
 
+  //Funcion para actualizar un titulo desde el tablero
+  const handleUpdateTitle = async (newTitle: string) => {
+    try {
+      const res = await fetch(`http://localhost:4000/boards/${boardId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: newTitle }),
+      });
+      if (res.ok) {
+        setBoard((prev) => {
+          if (!prev) return null;
+          return { ...prev, title: newTitle };
+        });
+      }
+    } catch (error) {
+      console.error("Error al actualizar el titulo", error);
+    }
+  };
+
+  //Funcion para cambiar el titulo de la Lista
+  const handleUpdateListTitle = async (listId: string, newTitle: string) => {
+    try {
+      const res = await fetch(`http://localhost:4000/lists/${listId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: newTitle }),
+      });
+      if (res.ok) {
+        refreshLists();
+      }
+    } catch (error) {
+      console.error("Error al actualizar el titulo", error);
+    }
+  };
+
+  //Funcion para eliminar una lista
+  const handleDeleteList = async (listId: string) => {
+    try {
+      await fetch(`http://localhost:4000/lists/${listId}`, {
+        method: "DELETE",
+      });
+      refreshLists();
+    } catch (error) {
+      console.error("Error deleting list:", error);
+    }
+  };
+
   //Para borrar
   const handleDeleteCard = async (cardId: string) => {
     try {
@@ -143,14 +196,18 @@ export const BoardDetail = () => {
       });
     }
   };
-  console.log(cards);
+
   return (
     <div
       className="h-screen flex flex-col"
       style={{ backgroundColor: board.color + 70 }}
     >
       <div className="bg-black p-4 flex justify-between items-center text-white backdrop-blur-sm ">
-        <h1 className="text-3xl font-bold">{board.title}</h1>
+        <EditableTitle
+          initialState={board.title || ""}
+          onSave={handleUpdateTitle}
+          className="text-3xl font-bold text-white"
+        />
 
         <Link
           to="/"
@@ -162,22 +219,26 @@ export const BoardDetail = () => {
 
       <div className="flex-1 overflow-x-auto p-4 flex items-start gap-4">
         {lists.map((list) => {
-          // 🔴 1. AQUÍ AGREGAS EL FILTRO
-          // Esto revisa si la tarjeta pertenece a esta lista actual
-          // NOTA: Revisa si en tu base de datos se llama 'listId' o 'list_id'
           const cardsInThisList = cards.filter(
             (card) => card.listId === list._id
           );
 
-          // 🔴 2. AGREGAS LA PALABRA 'return' (porque abrimos llaves arriba)
           return (
             <div
               key={list._id}
               className="min-w-68 bg-gray-100 rounded-lg p-2 shadow-md"
             >
-              <h3 className="font-bold text-gray-700 px-2 mb-2">
-                {list.title}
-              </h3>
+              <div className="flex justify-between">
+                <EditableTitle
+                  initialState={list.title}
+                  onSave={(newTitle) =>
+                    handleUpdateListTitle(list._id, newTitle)
+                  }
+                  className="font-bold text-gray-700 px-2 mb-2"
+                />
+
+                <DeleteBtn handleDelete={() => handleDeleteList(list._id)} />
+              </div>
               <DndContext
                 sensors={sensors}
                 collisionDetection={closestCenter}
@@ -185,11 +246,9 @@ export const BoardDetail = () => {
               >
                 <div className="flex flex-col gap-2 mt-2">
                   <SortableContext
-                    // 🔴 3. USAS LA LISTA FILTRADA AQUÍ
                     items={cardsInThisList.map((card) => card._id)}
                     strategy={verticalListSortingStrategy}
                   >
-                    {/* 🔴 4. Y USAS LA LISTA FILTRADA AQUÍ TAMBIÉN */}
                     {cardsInThisList.map((card) => (
                       <SortableCard
                         key={card._id}

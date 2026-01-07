@@ -27,5 +27,5 @@ export const useFetchBoard = (boardId: string | undefined) => {
     };
     fetchBoard();
   }, [boardId]);
-  return { board, isLoading, error };
+  return { board, isLoading, error, setBoard };
 };

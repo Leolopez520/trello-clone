@@ -108,6 +108,27 @@ app.put("/boards/:id", async (req, res) => {
   }
 });
 
+//Para modificar el titulo de las tarjetas
+app.put("/lists/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title } = req.body;
+    const updatedList = await List.findByIdAndUpdate(
+      id,
+      { title },
+      { new: true }
+    );
+
+    if (!updatedList) {
+      return res.status(404).json({ error: "Lista no encontrada" });
+    }
+    res.json(updatedList);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Error al actualizar el titulo " });
+  }
+});
+
 app.get("/boards/:id", async (req, res) => {
   console.log("¡Alguien tocó la puerta! Buscando ID:", req.params.id);
   try {
@@ -158,23 +179,23 @@ app.get("/cards/:boardId", async (req, res) => {
   }
 });
 
-app.put("/cards/:boardId", async (req, res) => {
+app.put("/cards/:id", async (req, res) => {
   try {
-    const { boardId } = req.params;
-    const { title, description } = req.body;
+    const { id } = req.params;
     const updatedCard = await Card.findByIdAndUpdate(
-      boardId,
-      { title, description },
+      id,
+      { $set: req.body },
       { new: true }
     );
 
     if (!updatedCard) {
-      return res.status(404).json({ error: "Card no encontrado" });
+      return res.status(404).json({ error: "Card no encontrada" });
     }
+
     res.json(updatedCard);
   } catch (error) {
     console.log(error);
-    res.status(500).json({ error: "Error al actualizar la tarjeta " });
+    res.status(500).json({ error: "Error al actualizar" });
   }
 });
 
@@ -191,5 +212,21 @@ app.delete("/cards/:boardId", async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "Error al eliminar la Card" });
+  }
+});
+
+app.delete("/lists/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deleteList = await List.findByIdAndDelete(id);
+
+    if (!deleteList) {
+      return res.status(404).json({ error: "List no encontrado" });
+    }
+
+    res.json({ message: "Lista eliminada correctamente" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Error al eliminar la Lista" });
   }
 });

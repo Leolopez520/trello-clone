@@ -1,8 +1,10 @@
 import type { Card } from "@/interfaces/card";
+import type { List } from "@/interfaces/list";
 import { useEffect, useState } from "react";
 
 export const useFetchCards = (boardId: string | undefined) => {
   const [cards, setCards] = useState<Card[]>([]);
+  const [lists, setLists] = useState<List[]>([]);
 
   const refreshCards = async () => {
     if (!boardId) return;

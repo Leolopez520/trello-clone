@@ -1,16 +1,6 @@
 import type { Card } from "@/interfaces/card";
 import { useState } from "react";
-// Quitamos Button de shadcn para no romper los estilos finos del checkbox
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "./ui/alert-dialog";
+import { DeleteBtn } from "./DeleteBtn";
 
 interface Props {
   card: Card;
@@ -135,36 +125,7 @@ export const CardItem = ({
         </button>
 
         {/* ALERT DIALOG (Basura) */}
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <button
-              className="p-1 hover:bg-gray-200 rounded text-gray-500 hover:text-red-600"
-              onClick={(e) => e.stopPropagation()}
-            >
-              🗑️
-            </button>
-          </AlertDialogTrigger>
-
-          <AlertDialogContent onClick={(e) => e.stopPropagation()}>
-            <AlertDialogTitle>¿Eliminar esta tarea?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta acción no se puede deshacer.
-            </AlertDialogDescription>
-
-            <AlertDialogFooter>
-              <AlertDialogCancel className="border-0 bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900 transition-colors duration-200 cursor-pointer">
-                Cancelar
-              </AlertDialogCancel>
-              {/* Aquí sí usamos la Action de Shadcn porque queremos que resalte en rojo */}
-              <AlertDialogAction
-                onClick={() => onDelete(card._id)}
-                className="bg-red-600 text-white hover:bg-red-900 hover:shadow-md transition-all duration-200 cursor-pointer"
-              >
-                Sí, eliminar
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <DeleteBtn handleDelete={() => onDelete(card._id)} />
       </div>
     </div>
   );
