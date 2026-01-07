@@ -172,10 +172,26 @@ app.post("/cards", async (req, res) => {
 app.get("/cards/:boardId", async (req, res) => {
   try {
     const { boardId } = req.params;
-    const cards = await Card.find({ boardId });
+    const cards = await Card.find({ boardId }).sort({ position: 1 });
     res.json(cards);
   } catch (error) {
     res.status(500).json({ error: "Error al obetener las tarjetas" });
+  }
+});
+
+//Persistencia de los checkbox
+app.put("/cards/reorder", async (req, res) => {
+  console.log("Recibido en reorder:", req.body);
+  try {
+    const { orderedIds } = req.body;
+    const updatedPromises = orderedIds.map((id, index) =>
+      Card.findByIdAndUpdate(id, { position: index })
+    );
+    await Promise.all(updatedPromises);
+    res.json({ message: "Orden Actualizado" });
+  } catch (error) {
+    console.log("El error fue este", error);
+    res.status(500).json({ error: "No se pudo actualizar la posicion " });
   }
 });
 

@@ -24,6 +24,11 @@ const cardSchema = new mongoose.Schema({
     ref: "Board",
     required: true,
   },
+  position: {
+    type: Number,
+    required: true,
+    default: 0,
+  },
 });
 
 module.exports = mongoose.model("Card", cardSchema);

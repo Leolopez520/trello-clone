@@ -182,19 +182,24 @@ export const BoardDetail = () => {
     }
   };
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  //Funcion para mover las tarjetas dentro de su lista
+  const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
-
     if (!over) return;
+    if (active.id == over.id) return;
+    const oldIndex = cards.findIndex((card) => card._id === active.id);
+    const newIndex = cards.findIndex((card) => card._id === over.id);
+    const sortedCards = arrayMove(cards, oldIndex, newIndex);
+    setCards(sortedCards);
 
-    if (active.id !== over.id) {
-      setCards((items) => {
-        const oldIndex = items.findIndex((item) => item._id === active.id);
-        const newIndex = items.findIndex((item) => item._id === over.id);
-
-        return arrayMove(items, oldIndex, newIndex);
+    const orderedIds = sortedCards.map((card) => card._id);
+    try {
+      await fetch(`http://localhost:4000/cards/reorder`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderedIds }),
       });
-    }
+    } catch (error) {}
   };
 
   return (
