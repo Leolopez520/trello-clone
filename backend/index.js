@@ -95,7 +95,7 @@ app.put("/boards/:id", async (req, res) => {
     const updatedBoard = await Board.findByIdAndUpdate(
       id,
       { title },
-      { new: true }
+      { new: true },
     );
 
     if (!updatedBoard) {
@@ -108,6 +108,25 @@ app.put("/boards/:id", async (req, res) => {
   }
 });
 
+// --- NUEVO: Endpoint para reordenar listas ---
+app.put("/lists/reorder", async (req, res) => {
+  console.log("Reordenando listas:", req.body);
+  try {
+    const { orderedIds } = req.body;
+
+    // Recorremos los IDs y actualizamos su posición (0, 1, 2...)
+    const updatePromises = orderedIds.map((id, index) =>
+      List.findByIdAndUpdate(id, { position: index }),
+    );
+
+    await Promise.all(updatePromises);
+    res.json({ message: "Orden de listas actualizado correctamente" });
+  } catch (error) {
+    console.error("Error reordenando listas:", error);
+    res.status(500).json({ error: "Error al reordenar listas" });
+  }
+});
+
 //Para modificar el titulo de las tarjetas
 app.put("/lists/:id", async (req, res) => {
   try {
@@ -116,7 +135,7 @@ app.put("/lists/:id", async (req, res) => {
     const updatedList = await List.findByIdAndUpdate(
       id,
       { title },
-      { new: true }
+      { new: true },
     );
 
     if (!updatedList) {
@@ -147,7 +166,7 @@ app.get("/boards/:id", async (req, res) => {
 app.get("/lists/:boardId", async (req, res) => {
   try {
     const { boardId } = req.params;
-    const lists = await List.find({ boardId });
+    const lists = await List.find({ boardId }).sort({ position: 1 });
 
     res.json(lists);
   } catch (error) {
@@ -185,7 +204,7 @@ app.put("/cards/reorder", async (req, res) => {
   try {
     const { orderedIds } = req.body;
     const updatedPromises = orderedIds.map((id, index) =>
-      Card.findByIdAndUpdate(id, { position: index })
+      Card.findByIdAndUpdate(id, { position: index }),
     );
     await Promise.all(updatedPromises);
     res.json({ message: "Orden Actualizado" });
@@ -201,7 +220,7 @@ app.put("/cards/:id", async (req, res) => {
     const updatedCard = await Card.findByIdAndUpdate(
       id,
       { $set: req.body },
-      { new: true }
+      { new: true },
     );
 
     if (!updatedCard) {

@@ -1,3 +1,8 @@
+export interface Label {
+  color: string;
+  text?: string;
+}
+
 export interface Card {
   _id: string;
   title: string;
@@ -5,4 +10,7 @@ export interface Card {
   boardId: string;
   description?: string;
   completed: boolean;
+  position?: number;
+  deadline?: string;
+  labels?: Label[];
 }

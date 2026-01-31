@@ -29,6 +29,13 @@ const cardSchema = new mongoose.Schema({
     required: true,
     default: 0,
   },
+  deadline: { type: Date, default: null },
+  labels: [
+    {
+      color: String,
+      text: String,
+    },
+  ],
 });
 
 module.exports = mongoose.model("Card", cardSchema);

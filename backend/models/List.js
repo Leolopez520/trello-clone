@@ -11,6 +11,7 @@ const listSchema = new mongoose.Schema({
     ref: "Board",
     required: true,
   },
+  position: { type: Number, default: 0 },
 });
 
 module.exports = mongoose.model("List", listSchema);

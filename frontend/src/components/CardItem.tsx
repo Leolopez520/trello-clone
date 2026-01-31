@@ -20,9 +20,41 @@ export const CardItem = ({
   const [isEditing, setIsEditing] = useState(false);
   const [tempTitle, setTempTitle] = useState(card.title);
 
+  // --- LÓGICA DE FECHAS ---
+  // Función corregida para mostrar fecha y hora
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return null;
+    const date = new Date(dateString);
+
+    // 1. Verificamos si la fecha tiene una hora distinta a 00:00
+    const hasTime = date.getHours() !== 0 || date.getMinutes() !== 0;
+
+    // 2. Formateamos el día (Ej: "30 ene")
+    const dayStr = date.toLocaleDateString("es-ES", {
+      day: "numeric",
+      month: "short",
+    });
+
+    // 3. Si tiene hora, la formateamos y la agregamos (Ej: "14:30")
+    if (hasTime) {
+      const timeStr = date.toLocaleTimeString("es-ES", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true, // Pon "false" si prefieres formato 24h
+      });
+      return `${dayStr} ${timeStr}`;
+    }
+
+    // 4. Si no tiene hora, devolvemos solo el día
+    return dayStr;
+  };
+
+  const isOverdue = card.deadline && new Date(card.deadline) < new Date();
+  // -------------------------
+
   const handleSave = () => {
     if (!tempTitle.trim()) {
-      setTempTitle(card.title); // Revertimos si está vacío
+      setTempTitle(card.title);
       return setIsEditing(false);
     }
     onUpdate(card._id, tempTitle);
@@ -40,12 +72,13 @@ export const CardItem = ({
     }
   };
 
+  // MODO EDICIÓN (Se mantiene igual)
   if (isEditing) {
     return (
       <div className="bg-white p-2 rounded-lg shadow-sm mb-2 border-2 border-blue-500 z-20 relative">
         <textarea
           autoFocus
-          className="w-full text-sm outline-none resize-none bg-transparent"
+          className="w-full text-sm outline-none resize-none bg-transparent text-gray-900"
           value={tempTitle}
           onChange={(e) => setTempTitle(e.target.value)}
           onKeyDown={handleKeyDown}
@@ -56,18 +89,20 @@ export const CardItem = ({
     );
   }
 
+  // MODO VISUALIZACIÓN
   return (
-    <div className="group relative bg-white p-2 rounded-lg shadow-sm mb-2 border border-gray-200 hover:border-gray-300 cursor-pointer hover:bg-gray-50 flex items-start">
+    <div className="group relative bg-gray-900 p-2 rounded-lg shadow-sm mb-2 border border-gray-700 hover:border-gray-500 cursor-pointer hover:bg-gray-800 flex items-start gap-2 transition-colors">
+      {/* CHECKBOX (Botón) */}
       <button
         onClick={(e) => {
           e.stopPropagation();
-          onToggleCompleted(card._id, card.completed);
+          onToggleCompleted(card._id, !!card.completed);
         }}
-        className={`shrink-0 mt-0.5 rounded-full overflow-hidden transition-all duration-300 ease-in-out hover:bg-gray-200 p-0.5
+        className={`shrink-0 mt-1 rounded-full overflow-hidden transition-all duration-300 ease-in-out hover:bg-gray-700 p-0.5
           ${
             card.completed
-              ? "w-5 mr-2 opacity-100"
-              : "w-0 opacity-0 group-hover:w-5 group-hover:mr-2 group-hover:opacity-100"
+              ? "opacity-100"
+              : "opacity-0 w-0 group-hover:w-5 group-hover:opacity-100" // Oculto hasta hover
           }`}
       >
         {card.completed ? (
@@ -75,7 +110,7 @@ export const CardItem = ({
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
             fill="currentColor"
-            className="w-5 h-5 text-green-600"
+            className="w-5 h-5 text-green-500"
           >
             <path
               fillRule="evenodd"
@@ -90,37 +125,78 @@ export const CardItem = ({
             viewBox="0 0 24 24"
             strokeWidth={1.5}
             stroke="currentColor"
-            className="w-5 h-5 text-gray-400 hover:text-gray-600"
+            className="w-5 h-5 text-gray-400 hover:text-white"
           >
             <circle cx="12" cy="12" r="9" />
           </svg>
         )}
       </button>
 
-      {/* TÍTULO */}
-      <div
-        onClick={onClick}
-        className={`text-sm text-gray-800 w-full min-w-0 break-words flex-1 leading-6 transition-all duration-300 ${
-          card.completed ? "text-gray-400 line-through" : ""
-        }`}
-      >
-        {card.title}
+      {/* CONTENEDOR DE DATOS (Etiquetas + Título + Fecha) */}
+      <div className="flex flex-col flex-1 min-w-0" onClick={onClick}>
+        {/* 1. ETIQUETAS (NUEVO) */}
+        {card.labels && card.labels.length > 0 && (
+          <div className="flex gap-1 mb-1.5 flex-wrap">
+            {card.labels.map((label, index) => (
+              <div
+                key={index}
+                className={`h-1.5 w-8 rounded-full ${label.color}`}
+                title={label.text}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* 2. TÍTULO */}
+        <div
+          className={`text-sm text-white font-medium w-full break-words leading-tight transition-all duration-300 ${
+            card.completed ? "text-gray-500 line-through" : ""
+          }`}
+        >
+          {card.title}
+        </div>
+
+        {/* 3. FECHA (NUEVO) */}
+        {card.deadline && (
+          <div
+            className={`flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded w-fit mt-2 border ${
+              isOverdue
+                ? "bg-red-900/40 text-red-200 border-red-800"
+                : card.completed
+                  ? "bg-green-900/40 text-green-200 border-green-800"
+                  : "bg-gray-800 text-gray-400 border-gray-700"
+            }`}
+          >
+            {/* Icono de Reloj SVG pequeño */}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              className="w-3 h-3"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z"
+                clipRule="evenodd"
+              />
+            </svg>
+            <span>{formatDate(card.deadline)}</span>
+          </div>
+        )}
       </div>
 
-      {/* ICONOS DE ACCIÓN RÁPIDA */}
-      <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 flex gap-1 bg-white/90 rounded px-1 transition-opacity z-10">
-        {/* Lápiz: Usamos botón nativo para evitar estilos extraños */}
+      {/* ICONOS DE ACCIÓN RÁPIDA (Hover) */}
+      <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 flex gap-1 bg-gray-800 rounded px-1 transition-opacity z-10 border border-gray-700 shadow-sm">
         <button
           onClick={(e) => {
             e.stopPropagation();
             setIsEditing(true);
           }}
-          className="p-1 hover:bg-gray-200 rounded text-gray-500 hover:text-blue-600"
+          className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-blue-400 transition-colors"
         >
           ✏️
         </button>
 
-        {/* ALERT DIALOG (Basura) */}
         <DeleteBtn handleDelete={() => onDelete(card._id)} />
       </div>
     </div>

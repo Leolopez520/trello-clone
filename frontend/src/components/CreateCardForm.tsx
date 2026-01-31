@@ -52,7 +52,7 @@ export const CreateCardForm = ({ listId, boardId, onCardCreated }: Props) => {
       <form onSubmit={handleSubmit} className="mt-2">
         <textarea
           autoFocus
-          className="w-full px-2 py-2 border rounded-md text-sm shadow-sm outline-none resize-none h-20"
+          className="w-full px-2 py-2 border rounded-md text-sm shadow-sm outline-none resize-none h-20 text-white"
           placeholder="Introduce un título para esta tarjeta..."
           value={title}
           onChange={(e) => setTitle(e.target.value)}
