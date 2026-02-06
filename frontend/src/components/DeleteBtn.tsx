@@ -18,7 +18,7 @@ export const DeleteBtn = ({ handleDelete }: Props) => {
     <AlertDialog>
       <AlertDialogTrigger asChild>
         <button
-          className="p-1 hover:bg-gray-200 rounded text-gray-500 hover:text-red-600"
+          className="p-1 hover:bg-gray-700 rounded text-gray-500 hover:text-red-600"
           onClick={(e) => e.stopPropagation()}
         >
           🗑️

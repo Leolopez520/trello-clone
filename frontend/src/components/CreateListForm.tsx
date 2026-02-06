@@ -40,23 +40,24 @@ export const CreateListForm = ({ boardId, onListCreated }: Props) => {
 
   if (isEditing) {
     return (
-      <div>
+      <div className="w-72 shrink-0 px-2 h-fit">
         <form
           onSubmit={handleSubmit}
-          className="min-w-68 bg-gray-100 rounded-lg p-2 shadow-md max-h-[80vh] w-72 shrink-0 flex flex-col"
+          className="bg-gray-900 rounded-xl p-3 shadow-2xl border border-gray-700 flex flex-col gap-2 animate-in fade-in zoom-in-95 duration-200"
         >
           <input
             autoFocus
-            placeholder="Introduce el titulo de la lista"
+            placeholder="Introduce el título de la lista..."
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             onKeyDown={handleKeyDown}
-            className="p-2 border-gray-300 focus:outline-none"
+            className="w-full p-2.5 text-sm bg-gray-950 text-white border border-gray-700 rounded-lg outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent placeholder:text-gray-500 transition-all shadow-inner"
           />
-          <div className="flex items-center gap-2">
+
+          <div className="flex items-center gap-2 mt-1">
             <Button
               type="submit"
-              className="bg-blue-600 hover:bg-blue-800 text-white h-8"
+              className="bg-blue-600 hover:bg-blue-500 text-white h-9 px-4 font-medium shadow-lg shadow-blue-900/20"
             >
               Añadir lista
             </Button>
@@ -64,15 +65,15 @@ export const CreateListForm = ({ boardId, onListCreated }: Props) => {
             <Button
               type="button"
               onClick={() => setIsEditing(false)}
-              className="text-gray-500 hover:text-gray-700 p-1 hover:bg-gray-300"
+              className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 h-9 w-9 rounded-lg transition-colors flex items-center justify-center"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
-                strokeWidth={1.5}
+                strokeWidth={2}
                 stroke="currentColor"
-                className="w-6 h-6"
+                className="w-5 h-5"
               >
                 <path
                   strokeLinecap="round"
@@ -88,12 +89,12 @@ export const CreateListForm = ({ boardId, onListCreated }: Props) => {
   }
 
   return (
-    <div className="w-72 shrink-0">
+    <div className="w-72 shrink-0 px-2">
       <Button
         onClick={() => setIsEditing(true)}
-        className="w-full bg-black/80 hover:bg-white/40 text-white font-bold py-3 px-3 rounded-xl text-left transition flex items-center gap-2 backdrop-blur-sm shadow-sm"
+        className="w-full bg-black/20 hover:bg-black/40 text-white justify-start h-12 px-4 rounded-xl backdrop-blur-sm border border-white/10 transition-all"
       >
-        <span>+</span>Añadir otra lista
+        + Añadir otra lista
       </Button>
     </div>
   );

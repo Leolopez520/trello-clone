@@ -75,15 +75,29 @@ export const CardItem = ({
   // MODO EDICIÓN (Se mantiene igual)
   if (isEditing) {
     return (
-      <div className="bg-white p-2 rounded-lg shadow-sm mb-2 border-2 border-blue-500 z-20 relative">
+      <div className="relative mb-2 z-20">
         <textarea
           autoFocus
-          className="w-full text-sm outline-none resize-none bg-transparent text-gray-900"
           value={tempTitle}
           onChange={(e) => setTempTitle(e.target.value)}
           onKeyDown={handleKeyDown}
           onBlur={handleSave}
           rows={2}
+          onFocus={(e) => e.target.select()}
+          className="
+            w-full 
+            text-sm 
+            bg-gray-900 
+            text-white 
+            p-2 
+            rounded-lg 
+            shadow-xl 
+            border-2 border-blue-500 
+            outline-none 
+            resize-none 
+            block
+            leading-tight
+          "
         />
       </div>
     );

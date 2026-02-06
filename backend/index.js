@@ -47,9 +47,12 @@ app.post("/lists", async (req, res) => {
       return res.status(404).json({ error: "El tablero no existe" });
     }
 
+    const lastList = await List.findOne({ boardId }).sort({ position: -1 });
+    const newPosition = lastList ? lastList.position + 1 : 0;
     const newList = new List({
       title,
       boardId,
+      position: newPosition,
     });
 
     const savedList = await newList.save();
@@ -64,6 +67,7 @@ app.get("/boards", async (req, res) => {
     const boards = await Board.find();
     res.json(boards);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: "Error al obtener los tableros" });
   }
 });
@@ -180,10 +184,14 @@ app.post("/cards", async (req, res) => {
     const { title, listId, boardId } = req.body;
     if (!title || !listId || !boardId)
       return res.status(400).json({ error: "Datos faltantes" });
-    const newCard = new Card({ title, listId, boardId });
+    const lastCard = await Card.findOne({ listId }).sort({ position: -1 });
+    const newPosition = lastCard ? lastCard.position + 1 : 0;
+    const newCard = new Card({ title, listId, boardId, position: newPosition });
     const savedCard = await newCard.save();
+
     res.json(savedCard);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: "Error al crear la tarjeta" });
   }
 });

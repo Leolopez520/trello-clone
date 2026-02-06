@@ -36,6 +36,19 @@ const cardSchema = new mongoose.Schema({
       text: String,
     },
   ],
+  checklist: [
+    {
+      subTitle: {
+        type: String,
+        required: true,
+        trim: true,
+      },
+      completed: {
+        type: Boolean,
+        default: false,
+      },
+    },
+  ],
 });
 
 module.exports = mongoose.model("Card", cardSchema);

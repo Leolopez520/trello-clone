@@ -9,7 +9,7 @@ import { CreateCardForm } from "./CreateCardForm";
 import { EditableTitle } from "./EditableTitle";
 import { DeleteBtn } from "./DeleteBtn";
 import type { List } from "@/interfaces/list";
-import type { Card } from "@/interfaces/card";
+import type { Card, Label } from "@/interfaces/card";
 
 interface Props {
   list: List;
@@ -17,7 +17,13 @@ interface Props {
   boardId: string;
   onUpdateTitle: (id: string, newTitle: string) => void;
   onDeleteList: (id: string) => void;
-  onUpdateCard: (id: string, title: string, desc?: string) => void;
+  onUpdateCard: (
+    id: string,
+    title: string,
+    desc: string,
+    deadline?: string,
+    labels?: Label[],
+  ) => void;
   onDeleteCard: (id: string) => void;
   onToggleCompleted: (id: string, status: boolean) => void;
   setActiveCard: (card: Card | null) => void;
@@ -79,7 +85,15 @@ export const ListColumn = ({
             <SortableCard
               key={card._id}
               card={card}
-              onUpdate={onUpdateCard}
+              onUpdate={(id, newTitle) =>
+                onUpdateCard(
+                  id,
+                  newTitle,
+                  card.description || "",
+                  card.deadline,
+                  card.labels,
+                )
+              }
               onDelete={onDeleteCard}
               onClick={() => setActiveCard(card)}
               onToggleCompleted={onToggleCompleted}
