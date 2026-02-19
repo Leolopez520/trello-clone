@@ -1,4 +1,4 @@
-import type { Card, Label } from "@/interfaces/card";
+import type { Card, CheckListItem, Label } from "@/interfaces/card";
 import { useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import {
@@ -8,12 +8,13 @@ import {
   Tag,
   X,
   CheckSquare,
-} from "lucide-react"; // Agregué iconos extra para decorar
+  Check,
+  Trash2,
+} from "lucide-react";
 import { format, set } from "date-fns";
 import { es } from "date-fns/locale";
 import { useDebounce } from "@/hooks/useDebounce";
 
-// Componentes UI
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
@@ -29,8 +30,9 @@ interface Props {
     cardId: string,
     title: string,
     description: string,
-    deadline?: string,
-    labels?: Label[],
+    deadline: string | undefined,
+    labels: Label[], // <--- Posición 5
+    checklist: CheckListItem[],
   ) => void;
 }
 
@@ -49,6 +51,9 @@ export const CardDetailModal = ({ card, onClose, onUpdate }: Props) => {
   const [title, setTitle] = useState(card.title);
   const debouncedTitle = useDebounce(title, 500);
   const [labels, setLabels] = useState<Label[]>(card.labels || []);
+  const [checklist, setChecklist] = useState<CheckListItem[]>(
+    card.checklist || [],
+  );
 
   const [deadline, setDeadline] = useState<Date | undefined>(
     card.deadline ? new Date(card.deadline) : undefined,
@@ -59,7 +64,14 @@ export const CardDetailModal = ({ card, onClose, onUpdate }: Props) => {
   //Funcion para tener debounce en el titulo
   useEffect(() => {
     if (debouncedTitle === card.title) return;
-    onUpdate(card._id, debouncedTitle, description, card.deadline, labels);
+    onUpdate(
+      card._id,
+      debouncedTitle,
+      description,
+      card.deadline,
+      labels,
+      checklist,
+    );
   }, [debouncedTitle]);
 
   useEffect(() => {
@@ -105,12 +117,82 @@ export const CardDetailModal = ({ card, onClose, onUpdate }: Props) => {
       });
     }
 
-    onUpdate(card._id, title, description, finalDate?.toISOString(), labels);
+    onUpdate(
+      card._id,
+      title,
+      description,
+      finalDate?.toISOString(),
+      labels,
+      checklist,
+    );
     onClose();
   };
 
+  const handleAddItem = () => {
+    if (!newItemText.trim()) return;
+
+    const newItem: CheckListItem = {
+      _id: Date.now().toString(),
+      subTitle: newItemText,
+      completed: false,
+    };
+
+    const updatedList = [...checklist, newItem];
+    setChecklist(updatedList);
+    setNewItemText("");
+    onUpdate(
+      card._id,
+      title,
+      description,
+      card.deadline,
+      card.labels || [],
+      updatedList,
+    );
+  };
+
+  const handleToggleItem = (itemId: string) => {
+    // 1. Creamos una nueva lista con el ítem modificado
+    const updatedList = checklist.map((item) => {
+      if (item._id === itemId) {
+        return { ...item, completed: !item.completed }; // Invertimos el valor
+      }
+      return item;
+    });
+
+    // 2. Actualizamos visualmente
+    setChecklist(updatedList);
+
+    // 3. ✨ GUARDAMOS EN BASE DE DATOS
+    onUpdate(
+      card._id,
+      title,
+      description,
+      card.deadline,
+      card.labels || [],
+      updatedList,
+    );
+  };
+
+  const handleDeleteItem = (itemId: string) => {
+    // 1. Filtramos la lista para quitar el ítem
+    const updatedList = checklist.filter((item) => item._id !== itemId);
+
+    // 2. Actualizamos visualmente
+    setChecklist(updatedList);
+
+    // 3. Guardamos en BD
+    onUpdate(
+      card._id,
+      title,
+      description,
+      card.deadline,
+      card.labels || [],
+      updatedList,
+    );
+  };
+
   //Realizar el calculo de la barra de progreso de las subtareas
-  const checklist = card.checkList || [];
+  //const checklist = card.checkList || [];
   const totalItems = checklist.length;
   const completedItems = checklist.filter((item) => item.completed).length;
   const progressPercentage =
@@ -219,7 +301,6 @@ export const CardDetailModal = ({ card, onClose, onUpdate }: Props) => {
                       mode="single"
                       selected={deadline}
                       onSelect={setDeadline}
-                      initialFocus
                       locale={es}
                       className="p-0"
                     />
@@ -268,7 +349,73 @@ export const CardDetailModal = ({ card, onClose, onUpdate }: Props) => {
                 />
               </div>
 
-              {/* Aquí luego pondremos la lista de tareas... */}
+              {/* LISTA DE TAREAS */}
+              <div className="space-y-3 mt-4">
+                {checklist.map((item) => (
+                  <div
+                    key={item._id}
+                    className="flex items-center gap-3 group cursor-pointer hover:bg-gray-800/50 p-2 rounded-md transition-colors" // ✨ Agregué hover y padding
+                  >
+                    {/* ZONA DE CLICK (CHECKBOX + TEXTO) */}
+                    <div
+                      className="flex-1 flex items-center gap-3"
+                      onClick={() => handleToggleItem(item._id)}
+                    >
+                      <div
+                        className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${
+                          item.completed
+                            ? "bg-blue-500 border-blue-500"
+                            : "border-gray-600 group-hover:border-gray-400"
+                        }`}
+                      >
+                        {item.completed && (
+                          <Check size={12} className="text-white" />
+                        )}
+                      </div>
+
+                      <span
+                        className={`text-sm transition-all ${
+                          item.completed
+                            ? "text-gray-500 line-through"
+                            : "text-gray-200"
+                        }`}
+                      >
+                        {item.subTitle}
+                      </span>
+                    </div>
+
+                    {/* ✨ BOTÓN DE ELIMINAR (Solo visible en Hover) */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation(); // Evita que al borrar también se marque como completada
+                        handleDeleteItem(item._id);
+                      }}
+                      className="opacity-0 group-hover:opacity-100 text-gray-500 hover:text-red-400 transition-all p-1"
+                      title="Eliminar tarea"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                ))}
+
+                {/* INPUT PARA NUEVA TAREA */}
+                <div className="mt-4 flex gap-2">
+                  <input
+                    type="text"
+                    value={newItemText}
+                    onChange={(e) => setNewItemText(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleAddItem()} // ¡Enter para agregar!
+                    placeholder="Agregar un elemento..."
+                    className="flex-1 bg-gray-900/50 border border-gray-700 rounded px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
+                  />
+                  <button
+                    onClick={handleAddItem}
+                    className="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded text-sm transition-colors"
+                  >
+                    Agregar
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 

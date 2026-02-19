@@ -1,6 +1,7 @@
 import type { Card } from "@/interfaces/card";
 import { useState } from "react";
 import { DeleteBtn } from "./DeleteBtn";
+import { CheckSquare } from "lucide-react";
 
 interface Props {
   card: Card;
@@ -19,6 +20,12 @@ export const CardItem = ({
 }: Props) => {
   const [isEditing, setIsEditing] = useState(false);
   const [tempTitle, setTempTitle] = useState(card.title);
+  const checklist = card.checklist || [];
+  const totalItems = checklist.length;
+  const completedItems = checklist.filter((i) => i.completed).length;
+
+  // Si no hay tareas, no queremos mostrar "0/0", así que usaremos esta variable para ocultarlo
+  const hasChecklist = totalItems > 0;
 
   // --- LÓGICA DE FECHAS ---
   // Función corregida para mostrar fecha y hora
@@ -195,6 +202,22 @@ export const CardItem = ({
               />
             </svg>
             <span>{formatDate(card.deadline)}</span>
+          </div>
+        )}
+
+        {hasChecklist && (
+          <div
+            className={`flex items-center gap-1 text-xs px-2 py-1 rounded-md transition-colors ${
+              completedItems === totalItems
+                ? "text-green-400 bg-green-400/10" // ✅ Todo listo: Verde
+                : "text-gray-400 bg-gray-800" // ⏳ En progreso: Gris
+            }`}
+            title="Progreso de tareas"
+          >
+            <CheckSquare size={14} />
+            <span className="font-medium">
+              {completedItems}/{totalItems}
+            </span>
           </div>
         )}
       </div>

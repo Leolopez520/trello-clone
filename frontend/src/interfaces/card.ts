@@ -19,5 +19,5 @@ export interface Card {
   position?: number;
   deadline?: string;
   labels?: Label[];
-  checkList?: CheckListItem[];
+  checklist?: CheckListItem[];
 }

@@ -1,6 +1,7 @@
 import { toast } from "sonner";
 import type { Card, Label } from "@/interfaces/card";
 import type { Board } from "@/interfaces/board";
+import type { CheckListItem } from "../interfaces/card";
 
 export const useCardOperations = (
   boardId: string | undefined,
@@ -57,8 +58,9 @@ export const useCardOperations = (
     cardId: string,
     newTitle: string,
     newDescription: string,
-    newDeadline?: string, // 👈 Nuevo argumento
-    newLabels?: Label[], // 👈 Nuevo argumento
+    newDeadline: string | undefined,
+    newLabels: Label[],
+    checklist: CheckListItem[],
   ) => {
     try {
       // Preparamos el cuerpo de la petición
@@ -67,6 +69,7 @@ export const useCardOperations = (
         description: newDescription,
         deadline: newDeadline,
         labels: newLabels,
+        checklist,
       };
 
       const res = await fetch(`http://localhost:4000/cards/${cardId}`, {
@@ -85,8 +88,9 @@ export const useCardOperations = (
                 ...card,
                 title: newTitle,
                 description: newDescription,
-                deadline: newDeadline, // Actualizamos localmente
-                labels: newLabels, // Actualizamos localmente
+                deadline: newDeadline,
+                labels: newLabels,
+                checklist: checklist,
               }
             : card,
         ),
@@ -102,6 +106,7 @@ export const useCardOperations = (
                 description: newDescription,
                 deadline: newDeadline,
                 labels: newLabels,
+                checkList: checklist,
               }
             : null,
         );
