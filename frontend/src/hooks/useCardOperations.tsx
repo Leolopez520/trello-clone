@@ -1,5 +1,5 @@
 import { toast } from "sonner";
-import type { Card, Label } from "@/interfaces/card";
+import type { Card, Label, PomodoroSession } from "@/interfaces/card";
 import type { Board } from "@/interfaces/board";
 import type { CheckListItem } from "../interfaces/card";
 
@@ -61,6 +61,9 @@ export const useCardOperations = (
     newDeadline: string | undefined,
     newLabels: Label[],
     checklist: CheckListItem[],
+    pomodoros: PomodoroSession[],
+    pomodoroTarget: number,
+    recurrence: string,
   ) => {
     try {
       // Preparamos el cuerpo de la petición
@@ -70,6 +73,9 @@ export const useCardOperations = (
         deadline: newDeadline,
         labels: newLabels,
         checklist,
+        pomodoros,
+        pomodoroTarget,
+        recurrence,
       };
 
       const res = await fetch(`http://localhost:4000/cards/${cardId}`, {
@@ -91,6 +97,8 @@ export const useCardOperations = (
                 deadline: newDeadline,
                 labels: newLabels,
                 checklist: checklist,
+                pomodoros: pomodoros,
+                pomodoroTarget: pomodoroTarget,
               }
             : card,
         ),
@@ -107,6 +115,8 @@ export const useCardOperations = (
                 deadline: newDeadline,
                 labels: newLabels,
                 checkList: checklist,
+                pomodoros: pomodoros,
+                pomodoroTarget: pomodoroTarget,
               }
             : null,
         );

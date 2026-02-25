@@ -38,6 +38,10 @@ const cardSchema = new mongoose.Schema({
   ],
   checklist: [
     {
+      _id: {
+        type: String,
+        default: () => new mongoose.Types.ObjectId().toString(),
+      },
       subTitle: {
         type: String,
         required: true,
@@ -49,6 +53,31 @@ const cardSchema = new mongoose.Schema({
       },
     },
   ],
+  pomodoroTarget: {
+    type: Number,
+    default: 1,
+  },
+  pomodoros: [
+    {
+      id: {
+        type: String,
+        required: true,
+      },
+      completedAt: {
+        type: Date,
+        required: true,
+      },
+      duration: {
+        type: Number,
+        required: true,
+      },
+    },
+  ],
+  recurrence: {
+    type: String,
+    enum: ["none", "daily", "weekly"],
+    default: "none",
+  },
 });
 
 module.exports = mongoose.model("Card", cardSchema);

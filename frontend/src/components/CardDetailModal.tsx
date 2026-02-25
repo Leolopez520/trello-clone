@@ -1,4 +1,9 @@
-import type { Card, CheckListItem, Label } from "@/interfaces/card";
+import type {
+  Card,
+  CheckListItem,
+  Label,
+  PomodoroSession,
+} from "@/interfaces/card";
 import { useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import {
@@ -10,6 +15,8 @@ import {
   CheckSquare,
   Check,
   Trash2,
+  Plus,
+  Repeat,
 } from "lucide-react";
 import { format, set } from "date-fns";
 import { es } from "date-fns/locale";
@@ -22,6 +29,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { PomodoroTracker } from "./PomodoroTracker";
 
 interface Props {
   card: Card;
@@ -31,8 +39,10 @@ interface Props {
     title: string,
     description: string,
     deadline: string | undefined,
-    labels: Label[], // <--- Posición 5
+    labels: Label[],
     checklist: CheckListItem[],
+    pomodoros: PomodoroSession[],
+    pomodoroTarget: number,
   ) => void;
 }
 
@@ -49,6 +59,12 @@ const AVAILABLE_COLORS = [
 export const CardDetailModal = ({ card, onClose, onUpdate }: Props) => {
   const [description, setDescription] = useState(card.description || "");
   const [title, setTitle] = useState(card.title);
+  const [pomodoros, setPomodoros] = useState<PomodoroSession[]>(
+    card.pomodoros || [],
+  );
+  const [pomodoroTarget, setPomodoroTarget] = useState<number>(
+    card.pomodoroTarget || 1,
+  );
   const debouncedTitle = useDebounce(title, 500);
   const [labels, setLabels] = useState<Label[]>(card.labels || []);
   const [checklist, setChecklist] = useState<CheckListItem[]>(
@@ -71,6 +87,8 @@ export const CardDetailModal = ({ card, onClose, onUpdate }: Props) => {
       card.deadline,
       labels,
       checklist,
+      card.pomodoros || [],
+      card.pomodoroTarget || 1,
     );
   }, [debouncedTitle]);
 
@@ -86,6 +104,8 @@ export const CardDetailModal = ({ card, onClose, onUpdate }: Props) => {
     setDescription(card.description || "");
     setTitle(card.title);
     setLabels(card.labels || []);
+    setPomodoros(card.pomodoros || []);
+    setPomodoroTarget(card.pomodoroTarget || 1);
 
     if (card.deadline) {
       const date = new Date(card.deadline);
@@ -95,7 +115,7 @@ export const CardDetailModal = ({ card, onClose, onUpdate }: Props) => {
       setDeadline(undefined);
       setSelectedTime("");
     }
-  }, [card]);
+  }, [card._id]);
 
   const toggleLabel = (color: string) => {
     const isSelected = labels.some((l) => l.color === color);
@@ -124,6 +144,8 @@ export const CardDetailModal = ({ card, onClose, onUpdate }: Props) => {
       finalDate?.toISOString(),
       labels,
       checklist,
+      card.pomodoros || [],
+      card.pomodoroTarget || 1,
     );
     onClose();
   };
@@ -147,6 +169,8 @@ export const CardDetailModal = ({ card, onClose, onUpdate }: Props) => {
       card.deadline,
       card.labels || [],
       updatedList,
+      card.pomodoros || [],
+      card.pomodoroTarget || 1,
     );
   };
 
@@ -170,6 +194,8 @@ export const CardDetailModal = ({ card, onClose, onUpdate }: Props) => {
       card.deadline,
       card.labels || [],
       updatedList,
+      card.pomodoros || [],
+      card.pomodoroTarget || 1,
     );
   };
 
@@ -188,6 +214,8 @@ export const CardDetailModal = ({ card, onClose, onUpdate }: Props) => {
       card.deadline,
       card.labels || [],
       updatedList,
+      card.pomodoros || [],
+      card.pomodoroTarget || 1,
     );
   };
 
@@ -205,7 +233,7 @@ export const CardDetailModal = ({ card, onClose, onUpdate }: Props) => {
     >
       <div
         // ✨ FONDO OSCURO Y BORDES SUTILES
-        className="bg-gray-900 w-full max-w-2xl rounded-xl shadow-2xl border border-gray-800 p-0 relative overflow-hidden"
+        className="bg-gray-900 w-full max-w-lg max-h-[90vh] flex flex-col rounded-xl shadow-2xl border border-gray-800 p-0 relative overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* ✨ BARRA DE TÍTULO */}
@@ -236,207 +264,274 @@ export const CardDetailModal = ({ card, onClose, onUpdate }: Props) => {
           </div>
         </div>
 
-        <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="p-6 flex flex-col md:grid-cols-2 gap-8 overflow-y-auto scrollbar-thin flex-1 min-h-0">
           {/* COLUMNA IZQUIERDA: ETIQUETAS Y FECHA */}
           <div className="space-y-6">
             {/* Etiquetas */}
+            {/* Etiquetas */}
             <div>
-              <h3 className="flex items-center gap-2 font-semibold text-gray-400 mb-3 text-xs uppercase tracking-wider">
-                <Tag size={14} /> Etiquetas
+              {/* Título más limpio, sin el ícono, igual que en tu referencia */}
+              <h3 className="text-sm font-medium text-gray-400 mb-3">
+                Etiquetas
               </h3>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex gap-2 flex-wrap">
                 {AVAILABLE_COLORS.map((color) => {
                   const isSelected = labels.some((l) => l.color === color);
                   return (
                     <button
                       key={color}
                       onClick={() => toggleLabel(color)}
-                      className={`w-8 h-8 rounded-full ${color} transition-all duration-200 ${
+                      className={cn(
+                        "h-6 w-10 rounded-md transition-all border-2", // La forma rectangular de tu referencia
+                        color, // Mantenemos bg-red-500, etc. para que coincida con tu BD
                         isSelected
-                          ? "ring-2 ring-white scale-110 shadow-lg" // ✨ Anillo blanco para resaltar en fondo oscuro
-                          : "opacity-60 hover:opacity-100 hover:scale-105"
-                      }`}
+                          ? "border-gray-200 scale-110 shadow-md" // Borde claro al seleccionar (modo oscuro)
+                          : "border-transparent opacity-60 hover:opacity-100", // Semitransparente si no está seleccionado
+                      )}
                     />
                   );
                 })}
               </div>
             </div>
+            {/* COLUMNA DERECHA: DESCRIPCIÓN */}
+            <section className="space-y-2">
+              {/* Cabecera separada como en tu referencia */}
+              <div className="flex items-center gap-2 text-gray-400">
+                <AlignLeft className="h-4 w-4" />
+                <h3 className="text-sm font-medium">Descripción</h3>
+              </div>
 
+              {/* Textarea estilo "muted" en Dark Mode */}
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                onKeyDown={(e) => {
+                  // Conservamos tu funcionalidad de atajo de teclado original
+                  if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                    e.preventDefault();
+                    handleSave();
+                  }
+                }}
+                placeholder="Añadir una descripción..."
+                className="w-full min-h-[80px] p-3 resize-none bg-gray-800/50 hover:bg-gray-800 border-none rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-gray-200 placeholder-gray-500 text-sm transition-colors"
+              />
+            </section>
             {/* Fecha de Vencimiento */}
-            <div>
-              <h3 className="flex items-center gap-2 font-semibold text-gray-400 mb-3 text-xs uppercase tracking-wider">
-                <CalendarIcon size={14} /> Fecha de Vencimiento
-              </h3>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <button
-                    // ✨ BOTÓN TRIGGER OSCURO
-                    className={cn(
-                      "w-full justify-start text-left font-normal flex items-center gap-2 px-3 py-2.5 rounded-lg border border-gray-700 bg-gray-800 text-gray-200 hover:bg-gray-700 transition-colors focus:ring-2 focus:ring-blue-500/50 outline-none",
-                      !deadline && "text-gray-500",
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4 opacity-70" />
-                    {deadline ? (
-                      <span className="flex-1">
-                        {format(deadline, "PPP", { locale: es })}
-                        {selectedTime && (
-                          <span className="text-gray-400 ml-1">
-                            a las {selectedTime}
-                          </span>
-                        )}
-                      </span>
-                    ) : (
-                      <span>Seleccionar fecha...</span>
-                    )}
-                  </button>
-                </PopoverTrigger>
+            {/* FECHA LÍMITE */}
+            <section className="space-y-2">
+              {/* Cabecera */}
+              <div className="flex items-center gap-2 text-gray-400">
+                <CalendarIcon className="h-4 w-4" />
+                <h3 className="text-sm font-medium">Fecha límite</h3>
+              </div>
 
-                <PopoverContent
-                  className="w-auto p-0 bg-gray-900 border-gray-700 shadow-xl"
-                  align="start"
-                >
-                  <div className="p-3 border-b border-gray-800">
+              {/* Controles: Botón Popover + Botón Limpiar */}
+              <div className="flex items-center gap-2">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    {/* Botón estilo "outline" oscuro */}
+                    <button
+                      className={cn(
+                        "flex items-center justify-start h-8 px-3 rounded-md border border-gray-800 bg-gray-950/50 hover:bg-gray-800 transition-colors text-sm font-medium outline-none focus:ring-1 focus:ring-blue-500",
+                        !deadline ? "text-gray-500" : "text-gray-200",
+                      )}
+                    >
+                      <CalendarIcon className="h-3.5 w-3.5 mr-2 opacity-70" />
+                      {deadline ? (
+                        <span>
+                          {format(deadline, "PPP", { locale: es })}
+                          {selectedTime && ` a las ${selectedTime}`}
+                        </span>
+                      ) : (
+                        <span>Seleccionar fecha</span>
+                      )}
+                    </button>
+                  </PopoverTrigger>
+
+                  <PopoverContent
+                    className="w-auto p-0 bg-gray-900 border-gray-800 shadow-xl rounded-lg"
+                    align="start"
+                  >
+                    {/* El calendario ahora tiene p-3 directamente para evitar que los números se muevan */}
                     <Calendar
                       mode="single"
                       selected={deadline}
                       onSelect={setDeadline}
+                      initialFocus
                       locale={es}
-                      className="p-0"
+                      className="p-3 pointer-events-auto"
                     />
-                  </div>
-                  <div className="p-3 bg-gray-900">
-                    <label className="text-xs font-medium text-gray-400 mb-1.5 block">
-                      Hora límite
-                    </label>
-                    <div className="relative flex items-center group">
-                      <input
-                        type="time"
-                        value={selectedTime}
-                        onChange={(e) => setSelectedTime(e.target.value)}
-                        className="
-                                  flex h-9 w-full rounded-md border border-gray-700 bg-gray-950 px-3 py-1 text-sm shadow-sm transition-colors 
-                                  placeholder:text-gray-600 
-                                  focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600 
-                                  text-white
-                                  [color-scheme:dark]
-                              "
-                      />
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                        <Clock className="h-4 w-4 text-gray-500 group-hover:text-gray-300 transition-colors" />
+
+                    {/* Selector de hora integrado limpiamente */}
+                    <div className="p-3 border-t border-gray-800 bg-gray-900/30">
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-gray-500" />
+                        <input
+                          type="time"
+                          value={selectedTime}
+                          onChange={(e) => setSelectedTime(e.target.value)}
+                          className="flex-1 h-8 rounded-md border border-gray-800 bg-gray-950 px-2 text-sm text-gray-200 focus:outline-none focus:ring-1 focus:ring-blue-500 [color-scheme:dark]"
+                        />
                       </div>
                     </div>
-                  </div>
-                </PopoverContent>
-              </Popover>
-            </div>
+                  </PopoverContent>
+                </Popover>
+
+                {/* Botón para quitar la fecha (Aparece solo si hay fecha seleccionada) */}
+                {deadline && (
+                  <button
+                    onClick={() => {
+                      setDeadline(undefined);
+                      setSelectedTime("");
+                    }}
+                    className="h-8 w-8 flex items-center justify-center rounded-md text-gray-500 hover:text-red-400 hover:bg-gray-800 transition-colors"
+                    title="Quitar fecha"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+            </section>
             {/* SECCIÓN CHECKLIST */}
             <div className="mt-6">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="font-semibold text-gray-300 flex items-center gap-2">
-                  <CheckSquare size={18} /> Checklist
-                </h3>
-                <span className="text-xs text-gray-400">
-                  {progressPercentage}%
-                </span>
-              </div>
-
-              {/* BARRA DE PROGRESO */}
-              <div className="w-full bg-gray-700 rounded-full h-2 mb-4 overflow-hidden">
-                <div
-                  className="bg-blue-500 h-2 rounded-full transition-all duration-500 ease-out"
-                  style={{ width: `${progressPercentage}%` }}
-                />
-              </div>
-
               {/* LISTA DE TAREAS */}
-              <div className="space-y-3 mt-4">
-                {checklist.map((item) => (
-                  <div
-                    key={item._id}
-                    className="flex items-center gap-3 group cursor-pointer hover:bg-gray-800/50 p-2 rounded-md transition-colors" // ✨ Agregué hover y padding
-                  >
-                    {/* ZONA DE CLICK (CHECKBOX + TEXTO) */}
+
+              {/* SECCIÓN CHECKLIST / SUBTAREAS */}
+              <section className="space-y-3 mt-2">
+                {/* Cabecera (Icono + Título + Contador dinámico) */}
+                <div className="flex items-center gap-2 text-gray-400">
+                  <CheckSquare className="h-4 w-4" />
+                  <h3 className="text-sm font-medium">
+                    Subtareas{" "}
+                    {totalItems > 0 && `(${completedItems}/${totalItems})`}
+                  </h3>
+                </div>
+
+                {/* Barra de progreso (Solo visible si hay tareas) */}
+                {totalItems > 0 && (
+                  <div className="w-full bg-gray-800 rounded-full h-1.5 overflow-hidden">
                     <div
-                      className="flex-1 flex items-center gap-3"
-                      onClick={() => handleToggleItem(item._id)}
+                      className="bg-blue-500 h-full rounded-full transition-all duration-500 ease-out"
+                      style={{ width: `${progressPercentage}%` }}
+                    />
+                  </div>
+                )}
+
+                {/* Lista de Tareas */}
+                <div className="space-y-1.5">
+                  {checklist.map((item) => (
+                    <div
+                      key={item._id}
+                      className="flex items-center gap-2 group"
                     >
-                      <div
-                        className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${
+                      {/* Checkbox minimalista */}
+                      <button
+                        onClick={() => handleToggleItem(item._id)}
+                        className={`w-4 h-4 rounded-[4px] border flex items-center justify-center transition-colors shrink-0 ${
                           item.completed
-                            ? "bg-blue-500 border-blue-500"
-                            : "border-gray-600 group-hover:border-gray-400"
+                            ? "bg-blue-500 border-blue-500 text-white"
+                            : "border-gray-500 hover:border-gray-400"
                         }`}
                       >
-                        {item.completed && (
-                          <Check size={12} className="text-white" />
-                        )}
-                      </div>
+                        {item.completed && <Check size={12} strokeWidth={3} />}
+                      </button>
 
+                      {/* Texto de la tarea */}
                       <span
-                        className={`text-sm transition-all ${
+                        onClick={() => handleToggleItem(item._id)}
+                        className={cn(
+                          "text-sm flex-1 cursor-pointer transition-colors select-none",
                           item.completed
-                            ? "text-gray-500 line-through"
-                            : "text-gray-200"
-                        }`}
+                            ? "line-through text-gray-500"
+                            : "text-gray-200",
+                        )}
                       >
                         {item.subTitle}
                       </span>
+
+                      {/* Botón de eliminar (Aparece en hover, usando X como en tu referencia) */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteItem(item._id);
+                        }}
+                        className="h-6 w-6 flex items-center justify-center rounded-md opacity-0 group-hover:opacity-100 text-gray-500 hover:text-red-400 hover:bg-gray-800 transition-all"
+                      >
+                        <X size={14} />
+                      </button>
                     </div>
+                  ))}
+                </div>
 
-                    {/* ✨ BOTÓN DE ELIMINAR (Solo visible en Hover) */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation(); // Evita que al borrar también se marque como completada
-                        handleDeleteItem(item._id);
-                      }}
-                      className="opacity-0 group-hover:opacity-100 text-gray-500 hover:text-red-400 transition-all p-1"
-                      title="Eliminar tarea"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                ))}
-
-                {/* INPUT PARA NUEVA TAREA */}
-                <div className="mt-4 flex gap-2">
+                {/* Input para nueva tarea (Inline) */}
+                <div className="flex items-center gap-2 pt-1">
                   <input
                     type="text"
                     value={newItemText}
                     onChange={(e) => setNewItemText(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleAddItem()} // ¡Enter para agregar!
-                    placeholder="Agregar un elemento..."
-                    className="flex-1 bg-gray-900/50 border border-gray-700 rounded px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
+                    onKeyDown={(e) => e.key === "Enter" && handleAddItem()}
+                    placeholder="Añadir subtarea..."
+                    className="flex-1 h-8 bg-gray-800/50 hover:bg-gray-800 border-none rounded-md px-3 text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors"
                   />
                   <button
                     onClick={handleAddItem}
-                    className="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded text-sm transition-colors"
+                    className="h-8 w-8 flex items-center justify-center bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-md border border-gray-700 transition-colors shrink-0"
                   >
-                    Agregar
+                    <Plus size={16} />
                   </button>
                 </div>
-              </div>
+              </section>
             </div>
-          </div>
 
-          {/* COLUMNA DERECHA: DESCRIPCIÓN */}
-          <div>
-            <h3 className="flex items-center gap-2 font-semibold text-gray-400 mb-3 text-xs uppercase tracking-wider">
-              <AlignLeft size={14} /> Descripción
-            </h3>
-            {/* ✨ TEXTAREA OSCURO */}
-            <textarea
-              className="w-full h-40 p-4 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none resize-none text-gray-200 bg-gray-950 placeholder-gray-600 leading-relaxed"
-              placeholder="Añade más detalles a esta tarea..."
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
-                  e.preventDefault();
-                  handleSave();
-                }
-              }}
-            />
+            {/* ✨ SECCIÓN RECURRENCIA (Opcional, estilo base) */}
+            <section className="space-y-2 mt-4">
+              <div className="flex items-center gap-2 text-gray-400">
+                <Repeat className="h-4 w-4" />
+                <h3 className="text-sm font-medium">Recurrencia</h3>
+              </div>
+              {/* Un Select HTML con estilo Dark Mode (puedes cambiarlo a tu componente Select de shadcn luego) */}
+              <select className="w-full sm:w-48 h-9 bg-gray-950 border border-gray-800 text-gray-200 text-sm rounded-md px-3 py-1 focus:ring-1 focus:ring-blue-500 focus:outline-none cursor-pointer hover:bg-gray-900 transition-colors">
+                <option value="none">Sin recurrencia</option>
+                <option value="daily">Diaria</option>
+                <option value="weekly">Semanal</option>
+              </select>
+            </section>
+
+            {/* ✨ SECCIÓN POMODORO FUNCIONAL */}
+            <section className="space-y-2 pt-4 border-t border-gray-800 mt-4">
+              <PomodoroTracker
+                completed={pomodoros}
+                target={pomodoroTarget}
+                onComplete={(session) => {
+                  // Tomamos los pomodoros anteriores y agregamos el nuevo
+                  const updatedPomodoros = [...pomodoros, session];
+                  setPomodoros(updatedPomodoros);
+                  onUpdate(
+                    card._id,
+                    title,
+                    description,
+                    card.deadline,
+                    labels,
+                    checklist,
+                    updatedPomodoros, // 🚀 Se guarda la nueva sesión
+                    card.pomodoroTarget || 1,
+                  );
+                }}
+                onTargetChange={(newTarget) => {
+                  setPomodoroTarget(newTarget);
+                  onUpdate(
+                    card._id,
+                    title,
+                    description,
+                    card.deadline,
+                    labels,
+                    checklist,
+                    card.pomodoros || [],
+                    newTarget, // 🚀 Se actualiza la cantidad objetivo
+                  );
+                }}
+              />
+            </section>
           </div>
         </div>
 
