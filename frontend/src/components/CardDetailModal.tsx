@@ -43,6 +43,7 @@ interface Props {
     checklist: CheckListItem[],
     pomodoros: PomodoroSession[],
     pomodoroTarget: number,
+    recurrence: string,
   ) => void;
 }
 
@@ -59,6 +60,9 @@ const AVAILABLE_COLORS = [
 export const CardDetailModal = ({ card, onClose, onUpdate }: Props) => {
   const [description, setDescription] = useState(card.description || "");
   const [title, setTitle] = useState(card.title);
+  const [recurrence, setRecurrence] = useState<string>(
+    card.recurrence || "none",
+  );
   const [pomodoros, setPomodoros] = useState<PomodoroSession[]>(
     card.pomodoros || [],
   );
@@ -89,6 +93,7 @@ export const CardDetailModal = ({ card, onClose, onUpdate }: Props) => {
       checklist,
       card.pomodoros || [],
       card.pomodoroTarget || 1,
+      recurrence,
     );
   }, [debouncedTitle]);
 
@@ -106,6 +111,7 @@ export const CardDetailModal = ({ card, onClose, onUpdate }: Props) => {
     setLabels(card.labels || []);
     setPomodoros(card.pomodoros || []);
     setPomodoroTarget(card.pomodoroTarget || 1);
+    setRecurrence(card.recurrence || "none");
 
     if (card.deadline) {
       const date = new Date(card.deadline);
@@ -144,8 +150,9 @@ export const CardDetailModal = ({ card, onClose, onUpdate }: Props) => {
       finalDate?.toISOString(),
       labels,
       checklist,
-      card.pomodoros || [],
-      card.pomodoroTarget || 1,
+      pomodoros,
+      pomodoroTarget,
+      recurrence,
     );
     onClose();
   };
@@ -171,6 +178,7 @@ export const CardDetailModal = ({ card, onClose, onUpdate }: Props) => {
       updatedList,
       card.pomodoros || [],
       card.pomodoroTarget || 1,
+      recurrence,
     );
   };
 
@@ -196,6 +204,7 @@ export const CardDetailModal = ({ card, onClose, onUpdate }: Props) => {
       updatedList,
       card.pomodoros || [],
       card.pomodoroTarget || 1,
+      recurrence,
     );
   };
 
@@ -216,6 +225,7 @@ export const CardDetailModal = ({ card, onClose, onUpdate }: Props) => {
       updatedList,
       card.pomodoros || [],
       card.pomodoroTarget || 1,
+      recurrence,
     );
   };
 
@@ -484,13 +494,33 @@ export const CardDetailModal = ({ card, onClose, onUpdate }: Props) => {
             </div>
 
             {/* ✨ SECCIÓN RECURRENCIA (Opcional, estilo base) */}
+
             <section className="space-y-2 mt-4">
               <div className="flex items-center gap-2 text-gray-400">
                 <Repeat className="h-4 w-4" />
                 <h3 className="text-sm font-medium">Recurrencia</h3>
               </div>
               {/* Un Select HTML con estilo Dark Mode (puedes cambiarlo a tu componente Select de shadcn luego) */}
-              <select className="w-full sm:w-48 h-9 bg-gray-950 border border-gray-800 text-gray-200 text-sm rounded-md px-3 py-1 focus:ring-1 focus:ring-blue-500 focus:outline-none cursor-pointer hover:bg-gray-900 transition-colors">
+              <select
+                value={recurrence}
+                onChange={(e) => {
+                  const newVal = e.target.value;
+                  setRecurrence(newVal); // 1. Actualiza la UI
+                  // 2. Envía al backend inmediatamente
+                  onUpdate(
+                    card._id,
+                    title,
+                    description,
+                    card.deadline,
+                    labels,
+                    checklist,
+                    pomodoros,
+                    pomodoroTarget,
+                    newVal, // 🚀 Enviamos la nueva recurrencia
+                  );
+                }}
+                className="w-full sm:w-48 h-9 bg-gray-950 border border-gray-800 text-gray-200 text-sm rounded-md px-3 py-1 focus:ring-1 focus:ring-blue-500 focus:outline-none cursor-pointer hover:bg-gray-900 transition-colors"
+              >
                 <option value="none">Sin recurrencia</option>
                 <option value="daily">Diaria</option>
                 <option value="weekly">Semanal</option>
@@ -500,8 +530,10 @@ export const CardDetailModal = ({ card, onClose, onUpdate }: Props) => {
             {/* ✨ SECCIÓN POMODORO FUNCIONAL */}
             <section className="space-y-2 pt-4 border-t border-gray-800 mt-4">
               <PomodoroTracker
+                cardId={card._id}
                 completed={pomodoros}
                 target={pomodoroTarget}
+                recurrence={recurrence}
                 onComplete={(session) => {
                   // Tomamos los pomodoros anteriores y agregamos el nuevo
                   const updatedPomodoros = [...pomodoros, session];
@@ -513,8 +545,9 @@ export const CardDetailModal = ({ card, onClose, onUpdate }: Props) => {
                     card.deadline,
                     labels,
                     checklist,
-                    updatedPomodoros, // 🚀 Se guarda la nueva sesión
+                    updatedPomodoros,
                     card.pomodoroTarget || 1,
+                    recurrence,
                   );
                 }}
                 onTargetChange={(newTarget) => {
@@ -527,7 +560,8 @@ export const CardDetailModal = ({ card, onClose, onUpdate }: Props) => {
                     labels,
                     checklist,
                     card.pomodoros || [],
-                    newTarget, // 🚀 Se actualiza la cantidad objetivo
+                    newTarget,
+                    recurrence,
                   );
                 }}
               />

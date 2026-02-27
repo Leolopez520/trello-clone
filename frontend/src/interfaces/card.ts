@@ -28,4 +28,5 @@ export interface Card {
   deadline?: string;
   labels?: Label[];
   checklist?: CheckListItem[];
+  recurrence?: "none" | "daily" | "weekly";
 }

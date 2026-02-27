@@ -55,6 +55,9 @@ exports.updateCard = async (req, res) => {
       "checklist",
       "pomodoros",
       "pomodoroTarget",
+      "recurrence",
+      "listId",
+      "boardId",
     ];
 
     const updateData = {};

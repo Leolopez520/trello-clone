@@ -16,6 +16,7 @@ import {
   SortableContext,
   horizontalListSortingStrategy,
 } from "@dnd-kit/sortable";
+import { FloatingTimer } from "./FloatingTimer";
 
 export const BoardDetail = () => {
   const [activeCard, setActiveCard] = useState<Card | null>(null);
@@ -138,6 +139,8 @@ export const BoardDetail = () => {
           onUpdate={handleUpdateCard}
         />
       )}
+
+      <FloatingTimer cards={cards} onUpdateCard={handleUpdateCard} />
     </div>
   );
 };

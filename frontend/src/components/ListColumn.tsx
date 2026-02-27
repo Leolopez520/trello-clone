@@ -9,7 +9,12 @@ import { CreateCardForm } from "./CreateCardForm";
 import { EditableTitle } from "./EditableTitle";
 import { DeleteBtn } from "./DeleteBtn";
 import type { List } from "@/interfaces/list";
-import type { Card, Label } from "@/interfaces/card";
+import type {
+  Card,
+  CheckListItem,
+  Label,
+  PomodoroSession,
+} from "@/interfaces/card";
 
 interface Props {
   list: List;
@@ -18,11 +23,15 @@ interface Props {
   onUpdateTitle: (id: string, newTitle: string) => void;
   onDeleteList: (id: string) => void;
   onUpdateCard: (
-    id: string,
+    cardId: string,
     title: string,
-    desc: string,
-    deadline?: string,
-    labels?: Label[],
+    description: string,
+    deadline: string | undefined,
+    labels: Label[],
+    checklist: CheckListItem[],
+    pomodoros: PomodoroSession[],
+    pomodoroTarget: number,
+    recurrence: string,
   ) => void;
   onDeleteCard: (id: string) => void;
   onToggleCompleted: (id: string, status: boolean) => void;
@@ -91,7 +100,11 @@ export const ListColumn = ({
                   newTitle,
                   card.description || "",
                   card.deadline,
-                  card.labels,
+                  card.labels || [],
+                  card.checklist || [],
+                  card.pomodoros || [],
+                  card.pomodoroTarget || 1,
+                  card.recurrence || "none",
                 )
               }
               onDelete={onDeleteCard}
